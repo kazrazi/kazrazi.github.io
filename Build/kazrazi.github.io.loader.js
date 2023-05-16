@@ -39,6 +39,15 @@ function createUnityInstance(canvas, config, onProgress) {
     errorHandler(message, filename, lineno);
   }
 
+  function fallbackToDefaultConfigWithWarning(config, key, defaultValue) {
+    var value = config[key];
+
+    if (typeof value === "undefined" || !value) {
+      console.warn("Config option \"" + key + "\" is missing or empty. Falling back to default value: \"" + defaultValue + "\". Consider updating your WebGL template to include the missing config option.");
+      config[key] = defaultValue;
+    }
+  }
+
   var Module = {
     canvas: canvas,
     webglContextAttributes: {
@@ -88,6 +97,11 @@ function createUnityInstance(canvas, config, onProgress) {
     ],
   };
 
+  // Add fallback values for companyName, productName and productVersion to ensure that the UnityCache is working. 
+  fallbackToDefaultConfigWithWarning(config, "companyName", "Unity");
+  fallbackToDefaultConfigWithWarning(config, "productName", "WebGL Player");
+  fallbackToDefaultConfigWithWarning(config, "productVersion", "1.0");
+  
   for (var parameter in config)
     Module[parameter] = config[parameter];
 
@@ -197,6 +211,7 @@ function createUnityInstance(canvas, config, onProgress) {
     if (browser == 'Safari') browserVersion = extractRe('Version\/(.*?) ', ua, 1);
     if (browser == 'Internet Explorer') browserVersion = extractRe('rv:(.*?)\\)? ', ua, 1) || browserVersion;
 
+    // These OS strings need to match the ones in Runtime/Misc/SystemInfo.cpp::GetOperatingSystemFamily()
     var oses = [
       ['Windows (.*?)[;\)]', 'Windows'],
       ['Android ([0-9_\.]+)', 'Android'],
@@ -205,7 +220,7 @@ function createUnityInstance(canvas, config, onProgress) {
       ['FreeBSD( )', 'FreeBSD'],
       ['OpenBSD( )', 'OpenBSD'],
       ['Linux|X11()', 'Linux'],
-      ['Mac OS X ([0-9_\.]+)', 'macOS'],
+      ['Mac OS X ([0-9_\.]+)', 'MacOS'],
       ['bot|google|baidu|bing|msn|teoma|slurp|yandex', 'Search Bot']
     ];
     for(var o = 0; o < oses.length; ++o) {
